@@ -8,7 +8,7 @@
  */
 
 /*
- * jkwon031_jmend062_lab2_part4.c
+ * jkwon_jmend062_lab2_part4.c
  *
  * Created: 1/12/2019 2:45:28 PM
  * Author : ericj
