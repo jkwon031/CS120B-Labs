@@ -1,7 +1,7 @@
 /*
- * jkwon031_jmend062_lab3_part2.c
+ * jkwon031_jmend062_lab3_part3.c
  *
- * Created: 1/15/2019 12:21:21 PM
+ * Created: 1/16/2019 7:22:35 PM
  * Author : ericj
  */ 
 
@@ -25,42 +25,50 @@ int main(void)
     /* Replace with your application code */
     while (1) 
     {
-		tmpA = PINA;
+		tmpA = PINA & 0x0F;
 		
 		if (tmpA > 0x00){
 			fuel_level = SetBit(fuel_level, 5, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 5, 0);
 		}
 		if(tmpA > 0x02){
 			fuel_level = SetBit(fuel_level, 4, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 4, 0);
 		}
 		if(tmpA > 0x04){
 			fuel_level = SetBit(fuel_level, 3, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 3, 0);
 		}
 		if(tmpA > 0x06){
 			fuel_level = SetBit(fuel_level, 2, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 2, 0);
 		}
 		if(tmpA > 0x09){
 			fuel_level = SetBit(fuel_level, 1, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 1, 0);
 		}
 		if(tmpA > 0x0C){
 			fuel_level = SetBit(fuel_level, 0, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 0, 0);
 		}
 		if(tmpA <= 4){
 			fuel_level = SetBit(fuel_level, 6, 1);
-		}else{
+			}else{
 			fuel_level = SetBit(fuel_level, 6, 0);
+		}
+		
+		tmpA = PINA & 0xF0;
+		
+		if((GetBit(tmpA, 4)) && (GetBit(tmpA, 5)) && (!GetBit(tmpA, 6))){
+			fuel_level = SetBit(fuel_level, 7, 1);
+		}else{
+			fuel_level = SetBit(fuel_level, 7, 0);
 		}
 		PORTC = fuel_level;
     }

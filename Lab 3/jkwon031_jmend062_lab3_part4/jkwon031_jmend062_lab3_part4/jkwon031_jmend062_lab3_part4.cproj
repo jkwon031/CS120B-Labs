@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>jkwon031_jmend062_lab3_part2</AssemblyName>
-    <Name>jkwon031_jmend062_lab3_part2</Name>
-    <RootNamespace>jkwon031_jmend062_lab3_part2</RootNamespace>
+    <AssemblyName>jkwon031_jmend062_lab3_part4</AssemblyName>
+    <Name>jkwon031_jmend062_lab3_part4</Name>
+    <RootNamespace>jkwon031_jmend062_lab3_part4</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
