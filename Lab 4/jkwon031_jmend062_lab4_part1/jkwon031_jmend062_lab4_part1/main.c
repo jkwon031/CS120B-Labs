@@ -34,6 +34,7 @@ void Tick(){
 			}
 			break;
 		default:
+			state = Start;
 			break;
 	}
 	
