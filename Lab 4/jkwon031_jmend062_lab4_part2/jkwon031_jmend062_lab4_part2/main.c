@@ -1,3 +1,12 @@
+/*	Partner(s) Name & E-mail: Jason Mendoza & jmend062@ucr.edu
+ *	Lab Section: 021
+ *	Assignment: Lab # 4 Exercise # 2
+ *	Exercise Description: [optional - include for your own benefit]
+ *	
+ *	I acknowledge all content contained herein, excluding template or example
+ *	code, is my own original work.
+ */
+
 /*
  * jkwon031_jmend062_lab4_part2.c
  *
@@ -43,6 +52,9 @@ void Tick(){
 		case Both:
 			state = Init;
 			break;
+		default:
+			state = Start;
+			break;
 	}
 	switch(state){
 		case Start:
@@ -61,6 +73,8 @@ void Tick(){
 			break;
 		case Both:
 			tmpC = 0;
+		default:
+			break;
 	}
 	PORTC = tmpC;
 }
