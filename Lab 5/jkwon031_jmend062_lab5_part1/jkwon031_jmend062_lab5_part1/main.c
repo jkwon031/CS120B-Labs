@@ -66,7 +66,7 @@ int main(void)
 			fuel_level = SetBit(fuel_level, 0, 0);
 		}
 		if(tmpA <= 4){
-			fuel_level = SetBit(fuel_level, 6, 1
+			fuel_level = SetBit(fuel_level, 6, 1);
 		}else{
 			fuel_level = SetBit(fuel_level, 6, 0);
 		}
