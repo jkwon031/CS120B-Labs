@@ -15,42 +15,101 @@ unsigned char GetBit(unsigned char x, unsigned char k) {
 	return ((x & (0x01 << k)) != 0);
 }
 
-enum States{Start, s0, s1, s2, buttonPress} state;
+enum States{Start, s0, s1, s2, s3, pause_s0, pause_s1, pause_s2, pause_s3} state;
 
 unsigned char tmpB = 0x00;
 
 void Tick(){
+	unsigned char tmpA = ~PINA & 0x01;
 	switch(state){
 		case Start:
-		state = s0;
-		break;
+			state = s0;
+			break;
 		case s0:
-		state = s1;
-		break;
+			if(!tmpA){
+				state = s1;
+			}else if(tmpA){
+				state = pause_s0;
+			}
+			break;
 		case s1:
-		state = s2;
-		break;
+			if(!tmpA){
+				state = s2;
+			}else if(tmpA){
+				state = pause_s1;
+			}
+			break;
 		case s2:
-		state = s0;
-		break;
+			if(!tmpA){
+				state = s3;
+			}else if(tmpA){
+				state = pause_s2;
+			}
+			break;
+		case s3:
+			if(!tmpA){
+				state = s0;
+			}else if(tmpA){
+				state = pause_s3;
+			}
+			break;
+		case pause_s0:
+			if(tmpA){
+				state = s0;
+			}else if(!tmpA){
+				state = pause_s0;				
+			}
+			break;
+		case pause_s1:
+			if(tmpA){
+				state = s0;
+			}else if(!tmpA){
+				state = pause_s1;
+			}
+			break;
+		case pause_s2:
+			if(tmpA){
+				state = s0;
+			}else if(!tmpA){
+				state = pause_s2;
+			}
+			break;
+		case pause_s3:
+			if(tmpA){
+				state = s0;
+			}else if(!tmpA){
+				state = pause_s3;
+			}
+			break;
 		default:
-		state = Start;
-		break;
+			state = Start;
+			break;
 	}
 	switch(state){
 		case Start:
-		break;
+			break;
 		case s0:
-		tmpB = 0x01;
-		break;
+			tmpB = 0x01;
+			break;
 		case s1:
-		tmpB = 0x02;
-		break;
+			tmpB = 0x02;
+			break;
 		case s2:
-		tmpB = 0x04;
-		break;
+			tmpB = 0x04;
+			break;
+		case s3:
+			tmpB = 0x02;
+			break;
+		case pause_s0:
+			break;
+		case pause_s1:
+			break;
+		case pause_s2:
+			break;
+		case pause_s3:
+			break;
 		default:
-		break;
+			break;
 	}
 	PORTB = tmpB;
 }
@@ -60,8 +119,10 @@ int main(void)
 	/* Replace with your application code */
 	tmpB = 0x00;
 	state = Start;
-	TimerSet(1000);
+	TimerSet(300);
 	TimerOn();
+	
+	DDRA = 0x00; PORTA = 0xFF;
 	
 	while (1)
 	{
