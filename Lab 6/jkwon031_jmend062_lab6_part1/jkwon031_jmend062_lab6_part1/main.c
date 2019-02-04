@@ -1,3 +1,12 @@
+/*	Partner(s) Name & E-mail: Jason Mendoza & jmend062@ucr.edu
+ *	Lab Section: 021
+ *	Assignment: Lab # 6 Exercise # 1
+ *	Exercise Description: [optional - include for your own benefit]
+ *	
+ *	I acknowledge all content contained herein, excluding template or example
+ *	code, is my own original work.
+ */
+
 /*
  * jkwon031_jmend062_lab6_part1.c
  *
