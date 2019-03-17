@@ -1,7 +1,7 @@
 /*
- * jkwon031_jmend062_lab11_part1.c
+ * jkwon031_jmend062_lab11_part4.c
  *
- * Created: 2/19/2019 11:37:10 AM
+ * Created: 2/24/2019 11:00:53 PM
  * Author : ericj
  */ 
 
@@ -9,22 +9,8 @@
 #include <avr/interrupt.h>
 #include "bit.h"
 #include "timer.h"
+#include "io.c"
 #include <stdio.h>
-
-// Returns '\0' if no key pressed, else returns char '1', '2', ... '9', 'A', ...
-// If multiple keys pressed, returns leftmost-topmost one
-// Keypad must be connected to port C
-/* Keypad arrangement
-        PC4 PC5 PC6 PC7
-   col  1   2   3   4
-row
-PC0 1   1 | 2 | 3 | A
-PC1 2   4 | 5 | 6 | B
-PC2 3   7 | 8 | 9 | C
-PC3 4   * | 0 | # | D
-*/
-
-
 
 unsigned char GetKeypadKey() {
 
@@ -48,12 +34,12 @@ unsigned char GetKeypadKey() {
 	PORTC = 0xBF; // Enable col 6 with 0, disable others with 1’s
 	asm("nop"); // add a delay to allow PORTC to stabilize before checking
 	if (GetBit(PINC,0)==0) { return('3'); }
-	if (GetBit(PINC,1)==0) { return('6'); }	
-	if (GetBit(PINC,2)==0) { return('9'); }	
+	if (GetBit(PINC,1)==0) { return('6'); }
+	if (GetBit(PINC,2)==0) { return('9'); }
 	if (GetBit(PINC,3)==0) { return('#'); }
 	// ... *****FINISH*****
 
-	// Check keys in col 4	
+	// Check keys in col 4
 	PORTC = 0x7F; // Enable col 7 with 0, disable others with 1’s
 	asm("nop"); // add a delay to allow PORTC to stabilize before checking
 	if (GetBit(PINC,0)==0) { return('A'); }
@@ -94,8 +80,11 @@ typedef struct _task {
 //--------End Task scheduler data structure-----------------------------------
 
 //--------Shared Variables----------------------------------------------------
-unsigned char SM1_output = 0x00;
-//unsigned char SM2_output = 0x00;
+unsigned char SM1_output[] = " ";
+unsigned char i = 1;
+unsigned char all_string[] = "Congratulations!";
+unsigned char enter_in = ' ';
+unsigned char previous = ' ';
 //unsigned char SM3_output = 0x00;
 //unsigned char pause = 0;
 
@@ -103,101 +92,117 @@ unsigned char SM1_output = 0x00;
 
 //--------User defined FSMs---------------------------------------------------
 //Enumeration of states.
-enum SM1_States { SM1_Start, SM1_Input };
+enum SM1_States {SM1_input};
 
 // Monitors button connected to PA0. 
 // When button is pressed, shared variable "pause" is toggled.
 int SMTick1(int state) {
 
 	// Local Variables
-	unsigned char x = 0;
-
-	//State machine transitions
-	switch (state) {
-		case SM1_Start:
-			state = SM1_Input;
-			break;
-		case SM1_Input:
-			state = SM1_Input;
-			break;
-		default:
-			state = SM1_Start;
+	unsigned char x; 
+	switch (state){
+		
+	case SM1_input:
+	state = SM1_input;
+	break;
+	
+	default:
+	state = SM1_input;
+	break;
+	
 	}
-
-	//State machine actions
-	switch(state) {
-		case SM1_Start:
-			break;
-		case SM1_Input:
-			x = GetKeypadKey();
-			switch (x) {
-				case '\0': SM1_output = 0x1F; break; // All 5 LEDs on
-				case '1': SM1_output = 0x01; break; // hex equivalent
-				case '2': SM1_output = 0x02; break;
-				case '3': SM1_output = 0x03; break;
-				case '4': SM1_output = 0x04; break;
-				case '5': SM1_output = 0x05; break;
-				case '6': SM1_output = 0x06; break;
-				case '7': SM1_output = 0x07; break;
-				case '8': SM1_output = 0x08; break;
-				case '9': SM1_output = 0x09; break;
-				case 'A': SM1_output = 0x0A; break;
-				case 'B': SM1_output = 0x0B; break;
-				case 'C': SM1_output = 0x0C; break;
-
-				// . . . ***** FINISH *****
-
-				case 'D': SM1_output = 0x0D; break;
-				case '*': SM1_output = 0x0E; break;
-				case '0': SM1_output = 0x00; break;
-				case '#': SM1_output = 0x0F; break;
-				default: SM1_output = 0x1B; break; // Should never occur. Middle LED off.
-			}
-			break;
-		default:
-			break;
+	
+	switch(state){
+		
+	case SM1_input:
+	previous = enter_in;
+	 x = GetKeypadKey();
+	 switch (x) {
+		 case '\0': 
+		 enter_in = '\0';
+		 break; // All 5 LEDs on
+		 case '1': enter_in = '1'; break; // hex equivalent
+		 case '2': enter_in = '2'; break;
+		 case '3': enter_in = '3'; break;
+		 case '4': enter_in = '4'; break;
+		 case '5': enter_in = '5'; break;
+		 case '6': enter_in = '6'; break;
+		 case '7': enter_in = '7'; break;
+		 case '8': enter_in = '8'; break;
+		 case '9': enter_in = '9'; break;
+		 case 'A': enter_in = 'A'; break;
+		 case 'B': enter_in = 'B'; break;
+		 case 'C': enter_in = 'C'; break;
+		 case 'D': enter_in = 'D'; break;
+		 case '*': enter_in = '*'; break;
+		 case '0': enter_in = '0'; break;
+		 case '#': enter_in = '#'; break;
+		 default:
+		 break; // Should never occur. Middle LED off.
+	 }
+	 break;
+	 
+	default:
+	break;
 	}
 	return state;
 }
 
 //Enumeration of states.
-/*enum SM2_States { SM2_wait, SM2_blink };
-
+enum SM2_States { SM2_init, SM2_scroll };
+/*
 // If paused: Do NOT toggle LED connected to PB0
 // If unpaused: toggle LED connected to PB0
 int SMTick2(int state) {
 
 	//State machine transitions
 	switch (state) {
-	case SM2_wait:	if (pause == 0) {	// If unpaused, go to blink state
-state = SM2_blink;
-}
-break;
+	
+	case SM2_init:
+	state = SM2_scroll;
+	break;
+	
+	case SM2_scroll:
+	state = SM2_scroll;
+	break;
 
-	case SM2_blink:	if (pause == 1) {	// If paused, go to wait state
-state = SM2_wait;
-}
-break;
-
-	default:		state = SM2_wait;
-break;
+	default:	
+	state = SM2_init;	
+	break;
 	}
 
 	//State machine actions
 	switch(state) {
-	case SM2_wait:	break;
+	case SM2_init:
+	i = 0;
+	break;
 
-	case SM2_blink:	SM2_output = (SM2_output == 0x00) ? 0x01 : 0x00; //toggle LED
-break;
+	case SM2_scroll:
+	if(i < 16){
+		SM2_output[i] = all_string[i];
+		i++;
+	}
+	else if(i < sizeof(all_string)){
+		for(int j = 0; j < 15; j++){
+			SM2_output[j] = SM2_output[j + 1];
+		}
+		SM2_output[15] = all_string[i];
+		i++;
+	}
+	else{
+		i = 0;
+	}
+	break;
 
-	default:		break;
+	default:
+	break;
 	}
 
 	return state;
-}*/
+}
 
 //Enumeration of states.
-/*enum SM3_States { SM3_wait, SM3_blink };
+enum SM3_States { SM3_wait, SM3_blink };
 
 // If paused: Do NOT toggle LED connected to PB1
 // If unpaused: toggle LED connected to PB1
@@ -229,37 +234,60 @@ break;
 	}
 
 	return state;
-}*/
+}
 
-
+*/
 //Enumeration of states.
-enum SM4_States { SM4_display };
+enum SM4_States {LCD_start, SM4_display };
 
 // Combine blinking LED outputs from SM2 and SM3, and output on PORTB
 int SMTick4(int state) {
 	// Local Variables
 
 	unsigned char output;
+	
 
 	//State machine transitions
 	switch (state) {
-	case SM4_display:	break;
+	case LCD_start:
+	state = SM4_display;
+	break;	
+		
+	case SM4_display:
+	state = SM4_display;
+	break;
 
-	default:		state = SM4_display;
-				break;
+	default:
+	state = LCD_start;
+	break;
+	
 	}
 
 	//State machine actions
 	switch(state) {
-	case SM4_display:	output = SM1_output; // write shared outputs
-									// to local variables
-break;
-
+	case SM4_display:
+	if(enter_in != '\0' && previous != enter_in ){
+	LCD_Cursor(i);
+	LCD_WriteData(enter_in); 
+	if(i < 16){
+		i++;
+	} 
+	else{
+		i = 1;
+	}
+	}
+	break;
+	
+	case LCD_start:	
+	LCD_DisplayString(1,all_string); // write shared outputs
+	break;
 	default:		break;
 	}
 
-	PORTB = output;	// Write combined, shared output variables to PORTB
-
+	//PORTB = output;	// Write combined, shared output variables to PORTB
+	//LCD_DisplayString(1,SM1_output);
+	
+	//LCD_DisplayString(1, "eat my ass");
 	return state;
 }
 
@@ -270,22 +298,23 @@ int main()
 {
 // Set Data Direction Registers
 // Buttons PORTA[0-7], set AVR PORTA to pull down logic
-//DDRA = 0x00; PORTA = 0xFF;
+DDRA = 0xFF; PORTA = 0x00;
 DDRB = 0xFF; PORTB = 0x00;
 DDRC = 0xF0; PORTC = 0x0F;
+DDRD = 0xFF; PORTD = 0x00;
 // . . . etc
 
 // Period for the tasks
-unsigned long int SMTick1_calc = 50;
-//unsigned long int SMTick2_calc = 500;
-//unsigned long int SMTick3_calc = 1000;
+unsigned long int SMTick1_calc = 10;
+//unsigned long int SMTick2_calc = 250;
+//unsigned long int SMTick3_calc = 250;
 unsigned long int SMTick4_calc = 10;
 
 //Calculating GCD
 unsigned long int tmpGCD = 1;
 tmpGCD = findGCD(SMTick1_calc, SMTick4_calc);
-//tmpGCD = findGCD(tmpGCD, SMTick3_calc);
 //tmpGCD = findGCD(tmpGCD, SMTick4_calc);
+//tmpGCD = findGCD(tmpGCD, SMTick3_calc);
 
 //Greatest common divisor for all tasks or smallest time unit for tasks.
 unsigned long int GCD = tmpGCD;
@@ -297,7 +326,7 @@ unsigned long int SMTick1_period = SMTick1_calc/GCD;
 unsigned long int SMTick4_period = SMTick4_calc/GCD;
 
 //Declare an array of tasks 
-static task task1, task4;
+static task task1, task4 ;
 task *tasks[] = { &task1, &task4 };
 const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
@@ -306,14 +335,14 @@ task1.state = -1;//Task initial state.
 task1.period = SMTick1_period;//Task Period.
 task1.elapsedTime = SMTick1_period;//Task current elapsed time.
 task1.TickFct = &SMTick1;//Function pointer for the tick.
-
-/*// Task 2
+/*
+// Task 2
 task2.state = -1;//Task initial state.
 task2.period = SMTick2_period;//Task Period.
 task2.elapsedTime = SMTick2_period;//Task current elapsed time.
 task2.TickFct = &SMTick2;//Function pointer for the tick.
-*/
-/*// Task 3
+
+// Task 3
 task3.state = -1;//Task initial state.
 task3.period = SMTick3_period;//Task Period.
 task3.elapsedTime = SMTick3_period; // Task current elasped time.
@@ -328,6 +357,8 @@ task4.TickFct = &SMTick4; // Function pointer for the tick.
 // Set the timer and turn it on
 TimerSet(GCD);
 TimerOn();
+
+LCD_init();
 
 unsigned short i; // Scheduler for-loop iterator
 while(1) {
@@ -349,41 +380,4 @@ while(1) {
 // Error: Program should not exit!
 return 0;
 }
-
-
-/*int main(void)
-{
-	unsigned char x;
-	DDRB = 0xFF; PORTB = 0x00; // PORTB set to output, outputs init 0s
-	DDRC = 0xF0; PORTC = 0x0F; // PC7..4 outputs init 0s, PC3..0 inputs init 1s
-	while(1) {
-		x = GetKeypadKey();
-		switch (x) {
-			case '\0': PORTB = 0x1F; break; // All 5 LEDs on
-			case '1': PORTB = 0x01; break; // hex equivalent
-			case '2': PORTB = 0x02; break;
-			case '3': PORTB = 0x03; break;
-			case '4': PORTB = 0x04; break;
-			case '5': PORTB = 0x05; break;
-			case '6': PORTB = 0x06; break;
-			case '7': PORTB = 0x07; break;
-			case '8': PORTB = 0x08; break;
-			case '9': PORTB = 0x09; break;
-			case 'A': PORTB = 0x0A; break;
-			case 'B': PORTB = 0x0B; break;
-			case 'C': PORTB = 0x0C; break;
-
-			// . . . ***** FINISH *****
-
-			case 'D': PORTB = 0x0D; break;
-			case '*': PORTB = 0x0E; break;
-			case '0': PORTB = 0x00; break;
-			case '#': PORTB = 0x0F; break;
-			default: PORTB = 0x1B; break; // Should never occur. Middle LED off.
-		}
-	}
-}*/
-
-
-
 

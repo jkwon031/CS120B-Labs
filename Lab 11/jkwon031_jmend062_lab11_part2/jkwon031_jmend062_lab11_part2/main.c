@@ -1,7 +1,7 @@
 /*
- * jkwon031_jmend062_lab11_part1.c
+ * jkwon031_jmend062_lab11_part2.c
  *
- * Created: 2/19/2019 11:37:10 AM
+ * Created: 2/24/2019 6:34:50 PM
  * Author : ericj
  */ 
 
@@ -9,6 +9,7 @@
 #include <avr/interrupt.h>
 #include "bit.h"
 #include "timer.h"
+#include "io.c"
 #include <stdio.h>
 
 // Returns '\0' if no key pressed, else returns char '1', '2', ... '9', 'A', ...
@@ -44,7 +45,7 @@ unsigned char GetKeypadKey() {
 	if (GetBit(PINC,3)==0) { return('0'); }
 	// ... *****FINISH*****
 
-	// Check keys in col 3
+	// Check keys in col 3 
 	PORTC = 0xBF; // Enable col 6 with 0, disable others with 1’s
 	asm("nop"); // add a delay to allow PORTC to stabilize before checking
 	if (GetBit(PINC,0)==0) { return('3'); }
@@ -95,7 +96,9 @@ typedef struct _task {
 
 //--------Shared Variables----------------------------------------------------
 unsigned char SM1_output = 0x00;
-//unsigned char SM2_output = 0x00;
+unsigned char ind = 0;
+unsigned char str[] = "                CS120B is Legend... wait for it DARY!                ";
+unsigned char SM2_output[] = "                "; 
 //unsigned char SM3_output = 0x00;
 //unsigned char pause = 0;
 
@@ -122,6 +125,7 @@ int SMTick1(int state) {
 			break;
 		default:
 			state = SM1_Start;
+			break;
 	}
 
 	//State machine actions
@@ -161,7 +165,7 @@ int SMTick1(int state) {
 }
 
 //Enumeration of states.
-/*enum SM2_States { SM2_wait, SM2_blink };
+enum SM2_States { SM2_Start, SM2_Init, SM2_Next };
 
 // If paused: Do NOT toggle LED connected to PB0
 // If unpaused: toggle LED connected to PB0
@@ -169,32 +173,47 @@ int SMTick2(int state) {
 
 	//State machine transitions
 	switch (state) {
-	case SM2_wait:	if (pause == 0) {	// If unpaused, go to blink state
-state = SM2_blink;
-}
-break;
-
-	case SM2_blink:	if (pause == 1) {	// If paused, go to wait state
-state = SM2_wait;
-}
-break;
-
-	default:		state = SM2_wait;
-break;
+		case SM2_Start:
+			state = SM2_Init;
+			break;
+		case SM2_Init:
+			state = SM2_Next;
+			break;
+		case SM2_Next:
+			state = SM2_Next;
+			break;
+		default:
+			state = SM2_Init;
+			break;
 	}
 
 	//State machine actions
 	switch(state) {
-	case SM2_wait:	break;
-
-	case SM2_blink:	SM2_output = (SM2_output == 0x00) ? 0x01 : 0x00; //toggle LED
-break;
-
-	default:		break;
+		case SM2_Start:
+			break;
+		case SM2_Init:
+			ind = 0;
+			break;
+		case SM2_Next:
+			if(ind < 16){
+				SM2_output[ind] = str[ind];
+				ind++;
+			}else if(ind < sizeof(str)){
+				for(int i = 0; i < 15; i++){
+					SM2_output[i] = SM2_output[i + 1];
+				}
+				SM2_output[15] = str[ind];
+				ind++;
+			}else{
+				ind = 0;
+			}
+			break;
+		default: 
+			break;
 	}
 
 	return state;
-}*/
+}
 
 //Enumeration of states.
 /*enum SM3_States { SM3_wait, SM3_blink };
@@ -259,6 +278,7 @@ break;
 	}
 
 	PORTB = output;	// Write combined, shared output variables to PORTB
+	LCD_DisplayString(1,SM2_output);
 
 	return state;
 }
@@ -270,20 +290,22 @@ int main()
 {
 // Set Data Direction Registers
 // Buttons PORTA[0-7], set AVR PORTA to pull down logic
-//DDRA = 0x00; PORTA = 0xFF;
+DDRA = 0xFF; PORTA = 0x00;
 DDRB = 0xFF; PORTB = 0x00;
 DDRC = 0xF0; PORTC = 0x0F;
+DDRD = 0xFF; PORTD = 0x00;
 // . . . etc
 
 // Period for the tasks
-unsigned long int SMTick1_calc = 50;
-//unsigned long int SMTick2_calc = 500;
+unsigned long int SMTick1_calc = 10;
+unsigned long int SMTick2_calc = 250;
 //unsigned long int SMTick3_calc = 1000;
-unsigned long int SMTick4_calc = 10;
+unsigned long int SMTick4_calc = 250;
 
 //Calculating GCD
 unsigned long int tmpGCD = 1;
-tmpGCD = findGCD(SMTick1_calc, SMTick4_calc);
+tmpGCD = findGCD(SMTick1_calc, SMTick2_calc);
+tmpGCD = findGCD(tmpGCD, SMTick4_calc);
 //tmpGCD = findGCD(tmpGCD, SMTick3_calc);
 //tmpGCD = findGCD(tmpGCD, SMTick4_calc);
 
@@ -292,13 +314,13 @@ unsigned long int GCD = tmpGCD;
 
 //Recalculate GCD periods for scheduler
 unsigned long int SMTick1_period = SMTick1_calc/GCD;
-//unsigned long int SMTick2_period = SMTick2_calc/GCD;
+unsigned long int SMTick2_period = SMTick2_calc/GCD;
 //unsigned long int SMTick3_period = SMTick3_calc/GCD;
 unsigned long int SMTick4_period = SMTick4_calc/GCD;
 
 //Declare an array of tasks 
-static task task1, task4;
-task *tasks[] = { &task1, &task4 };
+static task task1, task2, task4;
+task *tasks[] = { &task1, &task2, &task4 };
 const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
 // Task 1
@@ -307,12 +329,12 @@ task1.period = SMTick1_period;//Task Period.
 task1.elapsedTime = SMTick1_period;//Task current elapsed time.
 task1.TickFct = &SMTick1;//Function pointer for the tick.
 
-/*// Task 2
+// Task 2
 task2.state = -1;//Task initial state.
 task2.period = SMTick2_period;//Task Period.
 task2.elapsedTime = SMTick2_period;//Task current elapsed time.
 task2.TickFct = &SMTick2;//Function pointer for the tick.
-*/
+
 /*// Task 3
 task3.state = -1;//Task initial state.
 task3.period = SMTick3_period;//Task Period.
@@ -328,6 +350,9 @@ task4.TickFct = &SMTick4; // Function pointer for the tick.
 // Set the timer and turn it on
 TimerSet(GCD);
 TimerOn();
+
+
+LCD_init();
 
 unsigned short i; // Scheduler for-loop iterator
 while(1) {
@@ -383,7 +408,4 @@ return 0;
 		}
 	}
 }*/
-
-
-
 
